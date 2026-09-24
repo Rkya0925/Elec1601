@@ -18,6 +18,25 @@ bool turning = false;
 
 int leftOrRight = 1;
 
+
+
+  // Select the scenario here:
+int scenario = 0;
+
+// 0 = Unknown scenario
+// 1 = Middle of a long corridor
+// 2 = Ideal position for right turn
+// 3 = Ideal position for left turn
+// 4 = Dead end
+// 5 = Close to left wall, parallel
+// 6 = Close to right wall, parallel
+// 7 = Close to left wall, approximately 30 degrees
+// 8 = Close to right wall, approximately 30 degrees
+
+const int ledRight = A0;
+const int ledMid   = A1;
+const int ledLeft  = A2;
+
 void setSpeed(int speed){
   cw = 1500 - speed;
   ccw = 1500 + speed;
@@ -52,11 +71,29 @@ void right(){
   turning = false;
 }
 
+void turn180(){
+  Serial.println("Turning 180");
+  wheelLeft.write(cw - 40);
+  wheelRight.write(cw);
+ 
+  turning = true;
+ 
+  delay(1200);
+ 
+  turning = false;
+}
+
 void forward(){
   Serial.println("Moving forward");
  
   wheelLeft.write(ccw - offset);
   wheelRight.write(cw);
+}
+
+void displayLEDs(int right, int mid, int left) {
+  digitalWrite(ledRight, right);
+  digitalWrite(ledMid, mid);
+  digitalWrite(ledLeft, left);
 }
 
 void setup()
@@ -92,78 +129,11 @@ void loop()
   Serial.println("Left dist:  " + String(leftDist));
   Serial.println("Right dist:  " + String(rightDist));
   Serial.println("Front dist:  " + String(frontDist));
- 
-  if (turning == false){
-    if (frontDist < 5){
-      reverse();
-    } else {
-      if (leftDist < 5){ // nothing left
-        setSpeed(35);
-      
-        left();
-      }
-      else if (rightDist < 5){ // nothing right
-        setSpeed(10);
-      
-        right();
-      } else if (!(rightDist < 5) and !(leftDist < 5)) {
-        forward();
-      }
-    }
-   
-    Serial.println("Finished");
-    setSpeed(50);
-  }
-  delay(100);
-}
-// IR Object Detection Function
 
-int irDetect(int irLedPin, int irReceiverPin, long frequency)
-{
-  tone(irLedPin, frequency);                 // Turn on the IR LED square wave
-  delay(1);                                  // Wait 1 ms
-  int ir = digitalRead(irReceiverPin);       // IR receiver -> ir variable
-  noTone(irLedPin);                          // Turn off the IR LED
-  delay(1);                                  // Down time before recheck
-  return ir;                                 // Return 0 detect, 1 no detect
-}
-
-// IR distance measurement function
-
-int irDistance(int irLedPin, int irReceiverPin)
-{
-   int distance = 0;
-   for(long f = 38000; f <= 42000; f += 1000)
-   {
-      distance += irDetect(irLedPin, irReceiverPin, f);
-   }
-
-
-
-  // Select the scenario here:
-int scenario = 0;
-
-// 0 = Unknown scenario
-// 1 = Middle of a long corridor
-// 2 = Ideal position for right turn
-// 3 = Ideal position for left turn
-// 4 = Dead end
-// 5 = Close to left wall, parallel
-// 6 = Close to right wall, parallel
-// 7 = Close to left wall, approximately 30 degrees
-// 8 = Close to right wall, approximately 30 degrees
-
-const int ledRight = A0;
-const int ledMid   = A1;
-const int ledLeft  = A2;
-
-void setup() {
   pinMode(ledRight, OUTPUT);
   pinMode(ledMid, OUTPUT);
   pinMode(ledLeft, OUTPUT);
-}
 
-void loop() {
   switch (scenario) {
     case 0:
       displayLEDs(LOW, LOW, LOW);
@@ -208,12 +178,62 @@ void loop() {
       displayLEDs(LOW, LOW, LOW);
       break;
   }
+ 
+  if (turning == false){
+    if (frontDist < 5){
+      if (leftDist < 5 && rightDist < 5){
+        scenario = 4;
+
+        turn180();
+      } else {
+        reverse();
+      }
+    } else {
+      if (leftDist < 5){ // nothing left
+        setSpeed(35);
+      
+        scenario = 3;
+      
+        left();
+      }
+      else if (rightDist < 5){ // nothing right
+        setSpeed(10);
+      
+        scenario = 2;
+        
+        right();
+      } else if (!(rightDist < 5) and !(leftDist < 5)) {
+        scenario = 1;
+
+        forward();
+      }
+    }
+   
+    Serial.println("Finished");
+    setSpeed(50);
+  }
+  delay(100);
+}
+// IR Object Detection Function
+
+int irDetect(int irLedPin, int irReceiverPin, long frequency)
+{
+  tone(irLedPin, frequency);                 // Turn on the IR LED square wave
+  delay(1);                                  // Wait 1 ms
+  int ir = digitalRead(irReceiverPin);       // IR receiver -> ir variable
+  noTone(irLedPin);                          // Turn off the IR LED
+  delay(1);                                  // Down time before recheck
+  return ir;                                 // Return 0 detect, 1 no detect
 }
 
-void displayLEDs(int right, int mid, int left) {
-  digitalWrite(ledRight, right);
-  digitalWrite(ledMid, mid);
-  digitalWrite(ledLeft, left);
-}
+// IR distance measurement function
+
+int irDistance(int irLedPin, int irReceiverPin)
+{
+   int distance = 0;
+   for(long f = 38000; f <= 42000; f += 1000)
+   {
+      distance += irDetect(irLedPin, irReceiverPin, f);
+   }
    return distance;
 }
