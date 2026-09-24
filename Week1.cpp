@@ -111,7 +111,7 @@ void setup()
   Serial.begin(9600);
  
   setSpeed(50);
-  forward();
+  //forward();
   
   delay(1000);
 }
@@ -126,9 +126,9 @@ void loop()
   rightDist = irDistance(2, 3);
   frontDist = irDistance(6, 7);
 
-  Serial.println("Left dist:  " + String(leftDist));
-  Serial.println("Right dist:  " + String(rightDist));
-  Serial.println("Front dist:  " + String(frontDist));
+  //Serial.println("Left dist:  " + String(leftDist));
+  //Serial.println("Right dist:  " + String(rightDist));
+  //Serial.println("Front dist:  " + String(frontDist));
 
   pinMode(ledRight, OUTPUT);
   pinMode(ledMid, OUTPUT);
@@ -178,41 +178,55 @@ void loop()
       displayLEDs(LOW, LOW, LOW);
       break;
   }
+
+  scenario = 0;
  
   if (turning == false){
-    if (frontDist < 5){
-      if (leftDist < 5 && rightDist < 5){
+    
+    if (leftDist >= 5 && rightDist < 5){ // nothing left
+      
+      Serial.println("Distance left - right: " + String(leftDist - rightDist));
+
+      setSpeed(35);
+
+      if (leftDist - rightDist >= 3){ // closer to left wall than right wall by 3 units
+        scenario = 3;
+      } else {
+        scenario = 5;
+      }
+    
+      // left();
+    }
+    else if (rightDist >= 5 && leftDist < 5){ // nothing right
+      Serial.println("Distance right - left: " + String(leftDist - rightDist));
+
+      setSpeed(10);
+
+      if (rightDist - leftDist >= 3){ // closer to right wall than left wall by 3 units
+        scenario = 2;
+      } else {
+        scenario = 6;
+      }
+      
+      // right();
+    } else if ((rightDist <= 5) && (leftDist <= 5)) {
+      if (frontDist < 5){
         scenario = 4;
 
-        turn180();
-      } else {
-        reverse();
-      }
-    } else {
-      if (leftDist < 5){ // nothing left
-        setSpeed(35);
-      
-        scenario = 3;
-      
-        left();
-      }
-      else if (rightDist < 5){ // nothing right
-        setSpeed(10);
-      
-        scenario = 2;
-        
-        right();
-      } else if (!(rightDist < 5) and !(leftDist < 5)) {
+        //turn180();
+      } else { // not deadend
         scenario = 1;
 
-        forward();
+        //forward();
       }
     }
+    
    
-    Serial.println("Finished");
+    //Serial.println("Finished");
     setSpeed(50);
   }
-  delay(100);
+  Serial.println(scenario);
+  delay(1000);
 }
 // IR Object Detection Function
 
