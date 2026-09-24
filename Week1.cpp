@@ -137,5 +137,83 @@ int irDistance(int irLedPin, int irReceiverPin)
    {
       distance += irDetect(irLedPin, irReceiverPin, f);
    }
+
+
+
+  // Select the scenario here:
+int scenario = 0;
+
+// 0 = Unknown scenario
+// 1 = Middle of a long corridor
+// 2 = Ideal position for right turn
+// 3 = Ideal position for left turn
+// 4 = Dead end
+// 5 = Close to left wall, parallel
+// 6 = Close to right wall, parallel
+// 7 = Close to left wall, approximately 30 degrees
+// 8 = Close to right wall, approximately 30 degrees
+
+const int ledRight = A0;
+const int ledMid   = A1;
+const int ledLeft  = A2;
+
+void setup() {
+  pinMode(ledRight, OUTPUT);
+  pinMode(ledMid, OUTPUT);
+  pinMode(ledLeft, OUTPUT);
+}
+
+void loop() {
+  switch (scenario) {
+    case 0:
+      displayLEDs(LOW, LOW, LOW);
+      break;
+
+    case 1:
+      displayLEDs(HIGH, LOW, LOW);
+      break;
+
+    case 2:
+      displayLEDs(LOW, HIGH, LOW);
+      break;
+
+    case 3:
+      displayLEDs(HIGH, HIGH, LOW);
+      break;
+
+    case 4:
+      displayLEDs(LOW, LOW, HIGH);
+      break;
+
+    case 5:
+      displayLEDs(HIGH, LOW, HIGH);
+      break;
+
+    case 6:
+      displayLEDs(LOW, HIGH, HIGH);
+      break;
+
+    case 7:
+      displayLEDs(HIGH, HIGH, HIGH);
+      break;
+
+    case 8:
+      displayLEDs(HIGH, LOW, LOW);
+      delay(1000);
+      displayLEDs(LOW, LOW, LOW);
+      delay(1000);
+      break;
+
+    default:
+      displayLEDs(LOW, LOW, LOW);
+      break;
+  }
+}
+
+void displayLEDs(int right, int mid, int left) {
+  digitalWrite(ledRight, right);
+  digitalWrite(ledMid, mid);
+  digitalWrite(ledLeft, left);
+}
    return distance;
 }
