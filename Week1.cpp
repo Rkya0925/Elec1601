@@ -90,7 +90,7 @@ void forward(){
   wheelRight.write(cw);
 }
 
-void displayLEDs(int right, int mid, int left) {
+void displayLEDs(int left, int mid, int right) {
   digitalWrite(ledRight, right);
   digitalWrite(ledMid, mid);
   digitalWrite(ledLeft, left);
@@ -140,7 +140,7 @@ void loop()
       break;
 
     case 1:
-      displayLEDs(HIGH, LOW, LOW);
+      displayLEDs(LOW, LOW, HIGH);
       break;
 
     case 2:
@@ -148,11 +148,11 @@ void loop()
       break;
 
     case 3:
-      displayLEDs(HIGH, HIGH, LOW);
+      displayLEDs(LOW, HIGH, HIGH);
       break;
 
     case 4:
-      displayLEDs(LOW, LOW, HIGH);
+      displayLEDs(HIGH, LOW, LOW);
       break;
 
     case 5:
@@ -160,7 +160,7 @@ void loop()
       break;
 
     case 6:
-      displayLEDs(LOW, HIGH, HIGH);
+      displayLEDs(HIGH, HIGH, LOW);
       break;
 
     case 7:
