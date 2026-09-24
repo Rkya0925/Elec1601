@@ -18,6 +18,8 @@ bool turning = false;
 
 int leftOrRight = 1;
 
+int thresholdValue = 3;
+
 
 
   // Select the scenario here:
@@ -126,9 +128,9 @@ void loop()
   rightDist = irDistance(2, 3);
   frontDist = irDistance(6, 7);
 
-  //Serial.println("Left dist:  " + String(leftDist));
-  //Serial.println("Right dist:  " + String(rightDist));
-  //Serial.println("Front dist:  " + String(frontDist));
+  Serial.println("Left dist:  " + String(leftDist));
+  Serial.println("Front dist:  " + String(frontDist));
+  Serial.println("Right dist:  " + String(rightDist));
 
   pinMode(ledRight, OUTPUT);
   pinMode(ledMid, OUTPUT);
@@ -140,7 +142,7 @@ void loop()
       break;
 
     case 1:
-      displayLEDs(LOW, LOW, HIGH);
+      displayLEDs(HIGH, LOW, LOW);
       break;
 
     case 2:
@@ -148,11 +150,11 @@ void loop()
       break;
 
     case 3:
-      displayLEDs(LOW, HIGH, HIGH);
+      displayLEDs(HIGH, HIGH, LOW);
       break;
 
     case 4:
-      displayLEDs(HIGH, LOW, LOW);
+      displayLEDs(LOW, LOW, HIGH);
       break;
 
     case 5:
@@ -160,7 +162,7 @@ void loop()
       break;
 
     case 6:
-      displayLEDs(HIGH, HIGH, LOW);
+      displayLEDs(LOW, HIGH, HIGH);
       break;
 
     case 7:
@@ -169,9 +171,9 @@ void loop()
 
     case 8:
       displayLEDs(HIGH, LOW, LOW);
-      delay(1000);
+      delay(100);
       displayLEDs(LOW, LOW, LOW);
-      delay(1000);
+      delay(100);
       break;
 
     default:
@@ -183,41 +185,58 @@ void loop()
  
   if (turning == false){
     
-    if (leftDist >= 5 && rightDist < 5){ // nothing left
+    if (leftDist >= 5 && rightDist >= 5 && frontDist >= 5){
+      scenario = 0;
+    } else {
+      if (leftDist >= 5 && rightDist < 5){ // nothing left
+        
+       // Serial.println("Distance left - right: " + String(leftDist - rightDist));
+
+        setSpeed(35);
+
+        if (rightDist <= 2 && frontDist <= 4){
+          scenario = 8;
+        } else {
+          if (rightDist - leftDist <= -4){ // closer to right  wall than left wall by 3 units
+            scenario = 6;
+          } else {
+            scenario = 3;
+          }
+        }
+
+        //if ((leftDist - rightDist) >= 3){ // closer to left wall than right wall by 3 units
+          //scenario = 5;
+       // } else {
+        //}
       
-      Serial.println("Distance left - right: " + String(leftDist - rightDist));
-
-      setSpeed(35);
-
-      if (leftDist - rightDist >= 3){ // closer to left wall than right wall by 3 units
-        scenario = 3;
-      } else {
-        scenario = 5;
+        // left();
       }
-    
-      // left();
-    }
-    else if (rightDist >= 5 && leftDist < 5){ // nothing right
-      Serial.println("Distance right - left: " + String(leftDist - rightDist));
+      else if (rightDist >= 5 && leftDist < 5){ // nothing right
+        //Serial.println("Distance right - left: " + String(rightDist - leftDist));
 
-      setSpeed(10);
+        setSpeed(10);
 
-      if (rightDist - leftDist >= 3){ // closer to right wall than left wall by 3 units
-        scenario = 2;
-      } else {
-        scenario = 6;
-      }
-      
-      // right();
-    } else if ((rightDist <= 5) && (leftDist <= 5)) {
-      if (frontDist < 5){
-        scenario = 4;
+        if (leftDist <= 2 && frontDist <= 4){
+          scenario = 7;
+        } else {
+          if (leftDist - rightDist <= -4){ // closer to right  wall than left wall by 3 units
+            scenario = 5;
+          } else {
+            scenario = 2;
+          }
+        }
+        
+        // right();
+      } else if ((rightDist <= 5) && (leftDist <= 5)) {
+        if (frontDist < 5){
+          scenario = 4;
 
-        //turn180();
-      } else { // not deadend
-        scenario = 1;
+          //turn180();
+        } else { // not deadend
+          scenario = 1;
 
-        //forward();
+          //forward();
+        }
       }
     }
     
