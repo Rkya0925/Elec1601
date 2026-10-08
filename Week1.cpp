@@ -1,6 +1,9 @@
 // C++ code
 //
 
+
+// TODO: Change starting position adjustment and make it under the loop
+
 #include <Servo.h>
 
 Servo wheelLeft;
@@ -68,7 +71,7 @@ void left(bool isSlight){
   turning = true;
  
   if (isSlight){
-    delay(250);
+    delay(400);
   } else {
     delay(600);
   }
@@ -86,7 +89,7 @@ void right(bool isSlight){
   turning = true;
  
   if (isSlight){
-    delay(250);
+    delay(400);
   } else {
     delay(600);
   }
@@ -235,126 +238,139 @@ void loop()
           scenario = 1;
         }
       }
-
-      switch (scenario) {
-        case 0:
-          displayLEDs(LOW, LOW, LOW);
-
-          delay(700);
-
-          setSpeed(0);
-
-          stop();
-
-          break;
-
-        case 1:
-          displayLEDs(HIGH, LOW, LOW);
-
-          setSpeed(50);
-
-          forward();
-
-          break;
-
-        case 2:
-          displayLEDs(LOW, HIGH, LOW);
-          
-          setSpeed(50);
-
-          forward();
-
-          delay(900);
-          
-          setSpeed(30);
-
-          right(false);
-
-          delay(700);
-
-          forward();
-
-          delay(700);
-
-          break;
-
-        case 3:
-          displayLEDs(HIGH, HIGH, LOW);
-          
-          setSpeed(50);
-
-          forward();
-
-          delay(900);
-          
-          setSpeed(30);
-
-          left(false);
-
-          delay(700);
-
-          forward();
-
-          delay(700);
-
-          break;
-
-        case 4:
-          displayLEDs(LOW, LOW, HIGH);
-          
-          setSpeed(30);
-
-          turn180();
-
-          break;
-
-        case 5:
-          displayLEDs(HIGH, LOW, HIGH);
-          
-          setSpeed(30);
-
-          right(true);
-
-          break;
-
-        case 6:
-          displayLEDs(LOW, HIGH, HIGH);
-          
-          setSpeed(30);
-
-          left(true);
-
-          break;
-
-        case 7:
-          displayLEDs(HIGH, HIGH, HIGH);
-          
-          setSpeed(30);
-
-          right(true);
-          break;
-
-        case 8:
-          setSpeed(30);
-
-          left(true);
-
-          displayLEDs(HIGH, LOW, LOW);
-          delay(100);
-          displayLEDs(LOW, LOW, LOW);
-          delay(100);
-
-          break;
-
-        default:
-          displayLEDs(LOW, LOW, LOW);
-          break;
-      }
     }
     
    
     //Serial.println("Finished");
   }
+
+  if (turning == false){
+    switch (scenario) {
+      case 0:
+        displayLEDs(LOW, LOW, LOW);
+
+        delay(700);
+
+        setSpeed(0);
+
+        stop();
+
+        break;
+
+      case 1:
+        displayLEDs(HIGH, LOW, LOW);
+
+        setSpeed(50);
+
+        forward();
+
+        break;
+
+      case 2:
+        displayLEDs(LOW, HIGH, LOW);
+        
+        setSpeed(50);
+
+        forward();
+
+        delay(900);
+        
+        setSpeed(30);
+
+        right(false);
+
+        delay(700);
+
+        forward();
+
+        delay(700);
+
+        break;
+
+      case 3:
+        displayLEDs(HIGH, HIGH, LOW);
+        
+        setSpeed(50);
+
+        forward();
+
+        delay(900);
+        
+        setSpeed(30);
+
+        left(false);
+
+        delay(700);
+
+        forward();
+
+        delay(700);
+
+        break;
+
+      case 4:
+        displayLEDs(LOW, LOW, HIGH);
+        
+        setSpeed(30);
+
+        turn180();
+
+        break;
+
+      case 5:
+        displayLEDs(HIGH, LOW, HIGH);
+        
+        setSpeed(30);
+
+        right(true);
+
+        forward();
+
+        delay(1000);
+
+        left(true);
+
+        forward();
+
+        adjustingStartingPosition = false;
+
+      break;
+
+      case 6:
+        displayLEDs(LOW, HIGH, HIGH);
+        
+        setSpeed(30);
+
+        left(true);
+
+        break;
+
+      case 7:
+        displayLEDs(HIGH, HIGH, HIGH);
+        
+        setSpeed(30);
+
+        right(true);
+        break;
+
+      case 8:
+        setSpeed(30);
+
+        left(true);
+
+        displayLEDs(HIGH, LOW, LOW);
+        delay(100);
+        displayLEDs(LOW, LOW, LOW);
+        delay(100);
+
+        break;
+
+      default:
+        displayLEDs(LOW, LOW, LOW);
+        break;
+    }
+  }
+
   Serial.println(scenario);
   delay(1000);
 }
