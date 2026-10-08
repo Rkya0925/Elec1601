@@ -40,8 +40,18 @@ const int ledMid   = A1;
 const int ledLeft  = A2;
 
 void setSpeed(int speed){
-  cw = 1500 - speed;
-  ccw = 1500 + speed;
+  if (speed == 0){
+    cw = 1500;
+    ccw = 1500;
+  } else {
+    cw = 1500 - speed;
+    ccw = 1500 + speed;
+  }
+}
+
+void stop(){
+  wheelLeft.write(1500);
+  wheelRight.write(1500);
 }
 
 void reverse(){
@@ -49,26 +59,34 @@ void reverse(){
   wheelRight.write(ccw);
 }
 
-void left(){
+void left(bool isSlight){
   Serial.println("Moving left");
-  wheelLeft.write(ccw);
-  wheelRight.write(ccw);
- 
-  turning = true;
- 
-  delay(1000);
- 
-  turning = false;
-}
-
-void right(){
-  Serial.println("Moving right");
   wheelLeft.write(cw - 40);
   wheelRight.write(cw);
  
   turning = true;
  
-  delay(1000);
+  if (isSlight){
+    delay(600);
+  } else {
+    delay(250);
+  }
+ 
+  turning = false;
+}
+
+void right(bool isSlight){
+  Serial.println("Moving right");
+  wheelLeft.write(ccw);
+  wheelRight.write(ccw);
+ 
+  turning = true;
+ 
+  if (isSlight){
+    delay(600);
+  } else {
+    delay(250);
+  }
  
   turning = false;
 }
@@ -111,8 +129,10 @@ void setup()
   //wheelRight.write(ccw);
  
   Serial.begin(9600);
+
+  setSpeed(0);
  
-  setSpeed(50);
+  //setSpeed(50);
   //forward();
   
   delay(1000);
@@ -136,55 +156,9 @@ void loop()
   pinMode(ledMid, OUTPUT);
   pinMode(ledLeft, OUTPUT);
 
-  switch (scenario) {
-    case 0:
-      displayLEDs(LOW, LOW, LOW);
-      break;
-
-    case 1:
-      displayLEDs(HIGH, LOW, LOW);
-      break;
-
-    case 2:
-      displayLEDs(LOW, HIGH, LOW);
-      break;
-
-    case 3:
-      displayLEDs(HIGH, HIGH, LOW);
-      break;
-
-    case 4:
-      displayLEDs(LOW, LOW, HIGH);
-      break;
-
-    case 5:
-      displayLEDs(HIGH, LOW, HIGH);
-      break;
-
-    case 6:
-      displayLEDs(LOW, HIGH, HIGH);
-      break;
-
-    case 7:
-      displayLEDs(HIGH, HIGH, HIGH);
-      break;
-
-    case 8:
-      displayLEDs(HIGH, LOW, LOW);
-      delay(100);
-      displayLEDs(LOW, LOW, LOW);
-      delay(100);
-      break;
-
-    default:
-      displayLEDs(LOW, LOW, LOW);
-      break;
-  }
-
   scenario = 0;
  
   if (turning == false){
-    
     if (leftDist >= 5 && rightDist >= 5 && frontDist >= 5){
       scenario = 0;
     } else {
@@ -192,34 +166,23 @@ void loop()
         
        // Serial.println("Distance left - right: " + String(leftDist - rightDist));
 
-        setSpeed(35);
-
         if (rightDist <= 2 && frontDist <= 4){
           scenario = 8;
         } else {
-          if (rightDist - leftDist <= -4){ // closer to right  wall than left wall by 3 units
+          if (rightDist - leftDist <= -4){ // closer to left wall than right wall by 3 units
             scenario = 6;
           } else {
             scenario = 3;
           }
         }
-
-        //if ((leftDist - rightDist) >= 3){ // closer to left wall than right wall by 3 units
-          //scenario = 5;
-       // } else {
-        //}
-      
-        // left();
       }
       else if (rightDist >= 5 && leftDist < 5){ // nothing right
         //Serial.println("Distance right - left: " + String(rightDist - leftDist));
 
-        setSpeed(10);
-
         if (leftDist <= 2 && frontDist <= 4){
           scenario = 7;
         } else {
-          if (leftDist - rightDist <= -4){ // closer to right  wall than left wall by 3 units
+          if (leftDist - rightDist <= -4){ // closer to left  wall than right wall by 3 units
             scenario = 5;
           } else {
             scenario = 2;
@@ -230,19 +193,129 @@ void loop()
       } else if ((rightDist <= 5) && (leftDist <= 5)) {
         if (frontDist < 5){
           scenario = 4;
-
-          //turn180();
         } else { // not deadend
           scenario = 1;
-
-          //forward();
         }
+      }
+
+      switch (scenario) {
+        case 0:
+          displayLEDs(LOW, LOW, LOW);
+
+          delay(700);
+
+          setSpeed(0);
+
+          stop();
+
+          break;
+
+        case 1:
+          displayLEDs(HIGH, LOW, LOW);
+
+          setSpeed(50);
+
+          forward();
+
+          break;
+
+        case 2:
+          displayLEDs(LOW, HIGH, LOW);
+          
+          setSpeed(50);
+
+          forward();
+
+          delay(500);
+
+          stop();
+          
+          setSpeed(30);
+
+          right(false);
+
+          forward();
+
+          delay(300);
+
+          break;
+
+        case 3:
+          displayLEDs(HIGH, HIGH, LOW);
+          
+          setSpeed(50);
+
+          forward();
+
+          delay(500);
+
+          stop();
+          
+          setSpeed(30);
+
+          left(false);
+
+          forward();
+
+          delay(300);
+
+          break;
+
+        case 4:
+          displayLEDs(LOW, LOW, HIGH);
+          
+          setSpeed(30);
+
+          turn180();
+
+          break;
+
+        case 5:
+          displayLEDs(HIGH, LOW, HIGH);
+          
+          setSpeed(30);
+
+          right(true);
+
+          break;
+
+        case 6:
+          displayLEDs(LOW, HIGH, HIGH);
+          
+          setSpeed(30);
+
+          left(true);
+
+          break;
+
+        case 7:
+          displayLEDs(HIGH, HIGH, HIGH);
+          
+          setSpeed(30);
+
+          right(true);
+          break;
+
+        case 8:
+          setSpeed(30);
+
+          left(true);
+
+          displayLEDs(HIGH, LOW, LOW);
+          delay(100);
+          displayLEDs(LOW, LOW, LOW);
+          delay(100);
+
+          break;
+
+        default:
+          displayLEDs(LOW, LOW, LOW);
+          break;
       }
     }
     
    
     //Serial.println("Finished");
-    setSpeed(50);
   }
   Serial.println(scenario);
   delay(1000);
