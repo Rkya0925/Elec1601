@@ -63,15 +63,16 @@ void left(bool isSlight){
   Serial.println("Moving left");
   wheelLeft.write(cw - 40);
   wheelRight.write(cw);
- 
+
   turning = true;
- 
+
   if (isSlight){
-    delay(250);
+    delay(600);
   } else {
-    delay(800);
+    delay(250);
   }
- 
+
+  stop();
   turning = false;
 }
 
@@ -79,15 +80,16 @@ void right(bool isSlight){
   Serial.println("Moving right");
   wheelLeft.write(ccw);
   wheelRight.write(ccw);
- 
+
   turning = true;
- 
+
   if (isSlight){
-    delay(250);
+    delay(600);
   } else {
-    delay(800);
+    delay(250);
   }
- 
+
+  stop();
   turning = false;
 }
 
@@ -95,17 +97,18 @@ void turn180(){
   Serial.println("Turning 180");
   wheelLeft.write(cw - 40);
   wheelRight.write(cw);
- 
+
   turning = true;
- 
+
   delay(1200);
- 
+
+  stop();
   turning = false;
 }
 
 void forward(){
   Serial.println("Moving forward");
- 
+
   wheelLeft.write(ccw - offset);
   wheelRight.write(cw);
 }
@@ -121,20 +124,20 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(A3, INPUT);
   pinMode(A2, INPUT);
- 
+
   wheelLeft.attach(13);
   wheelRight.attach(12);
- 
+
   //wheelLeft.write(ccw);
   //wheelRight.write(ccw);
- 
+
   Serial.begin(9600);
 
   setSpeed(0);
- 
+
   //setSpeed(50);
   //forward();
-  
+
   delay(1000);
 }
 
@@ -157,30 +160,23 @@ void loop()
   pinMode(ledLeft, OUTPUT);
 
   scenario = 0;
- 
+
   if (turning == false){
     if (leftDist >= 5 && rightDist >= 5 && frontDist >= 5){
       scenario = 0;
     } else {
       if (leftDist >= 5 && rightDist < 5){ // nothing left
-        
+
        // Serial.println("Distance left - right: " + String(leftDist - rightDist));
 
         if (rightDist <= 2 && frontDist <= 4){
           scenario = 8;
         } else {
-          
-          if (rightDist <= 1){
+          if (rightDist - leftDist <= -4){ // closer to left wall than right wall by 3 units
             scenario = 6;
           } else {
             scenario = 3;
           }
-
-          //if (rightDist - leftDist <= -5){ // closer to left wall than right wall by 3 units
-            //scenario = 6;
-          //} else {
-            //scenario = 3;
-          //}
         }
       }
       else if (rightDist >= 5 && leftDist < 5){ // nothing right
@@ -189,18 +185,13 @@ void loop()
         if (leftDist <= 2 && frontDist <= 4){
           scenario = 7;
         } else {
-          if (leftDist <= 1){
+          if (leftDist - rightDist <= -4){ // closer to left wall than right wall by 3 units
             scenario = 5;
           } else {
             scenario = 2;
           }
-          //if (leftDist - rightDist >= -5){ // closer to left  wall than right wall by 3 units
-            //scenario = 5;
-          //} else {
-            //scenario = 2;
-          //}
         }
-        
+
         // right();
       } else if ((rightDist <= 5) && (leftDist <= 5)) {
         if (frontDist < 5){
@@ -233,49 +224,49 @@ void loop()
 
         case 2:
           displayLEDs(LOW, HIGH, LOW);
-          
+
           setSpeed(50);
 
           forward();
 
           delay(500);
-          
+
+          stop();
+
           setSpeed(30);
 
           right(false);
 
-          delay(700);
-
           forward();
 
-          delay(700);
+          delay(300);
 
           break;
 
         case 3:
           displayLEDs(HIGH, HIGH, LOW);
-          
+
           setSpeed(50);
 
           forward();
 
           delay(500);
-          
+
+          stop();
+
           setSpeed(30);
 
           left(false);
 
-          delay(700);
-
           forward();
 
-          delay(700);
+          delay(300);
 
           break;
 
         case 4:
           displayLEDs(LOW, LOW, HIGH);
-          
+
           setSpeed(30);
 
           turn180();
@@ -284,7 +275,7 @@ void loop()
 
         case 5:
           displayLEDs(HIGH, LOW, HIGH);
-          
+
           setSpeed(30);
 
           right(true);
@@ -293,7 +284,7 @@ void loop()
 
         case 6:
           displayLEDs(LOW, HIGH, HIGH);
-          
+
           setSpeed(30);
 
           left(true);
@@ -302,7 +293,7 @@ void loop()
 
         case 7:
           displayLEDs(HIGH, HIGH, HIGH);
-          
+
           setSpeed(30);
 
           right(true);
@@ -325,33 +316,34 @@ void loop()
           break;
       }
     }
-    
-   
+
+
     //Serial.println("Finished");
   }
   Serial.println(scenario);
   delay(1000);
 }
+
 // IR Object Detection Function
 
 int irDetect(int irLedPin, int irReceiverPin, long frequency)
 {
   tone(irLedPin, frequency);                 // Turn on the IR LED square wave
-  delay(1);                                  // Wait 1 ms
+  delay(1);                                 // Wait 1 ms
   int ir = digitalRead(irReceiverPin);       // IR receiver -> ir variable
   noTone(irLedPin);                          // Turn off the IR LED
-  delay(1);                                  // Down time before recheck
-  return ir;                                 // Return 0 detect, 1 no detect
+  delay(1);                                 // Down time before recheck
+  return ir;                                // Return 0 detect, 1 no detect
 }
 
 // IR distance measurement function
 
 int irDistance(int irLedPin, int irReceiverPin)
 {
-   int distance = 0;
-   for(long f = 38000; f <= 42000; f += 1000)
-   {
-      distance += irDetect(irLedPin, irReceiverPin, f);
-   }
-   return distance;
+  int distance = 0;
+  for(long f = 38000; f <= 42000; f += 1000)
+  {
+    distance += irDetect(irLedPin, irReceiverPin, f);
+  }
+  return distance;
 }
