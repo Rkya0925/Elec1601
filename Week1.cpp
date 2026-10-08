@@ -67,9 +67,9 @@ void left(bool isSlight){
   turning = true;
  
   if (isSlight){
-    delay(600);
-  } else {
     delay(250);
+  } else {
+    delay(800);
   }
  
   turning = false;
@@ -83,9 +83,9 @@ void right(bool isSlight){
   turning = true;
  
   if (isSlight){
-    delay(600);
-  } else {
     delay(250);
+  } else {
+    delay(800);
   }
  
   turning = false;
@@ -169,11 +169,18 @@ void loop()
         if (rightDist <= 2 && frontDist <= 4){
           scenario = 8;
         } else {
-          if (rightDist - leftDist <= -4){ // closer to left wall than right wall by 3 units
+          
+          if (rightDist <= 1){
             scenario = 6;
           } else {
             scenario = 3;
           }
+
+          //if (rightDist - leftDist <= -5){ // closer to left wall than right wall by 3 units
+            //scenario = 6;
+          //} else {
+            //scenario = 3;
+          //}
         }
       }
       else if (rightDist >= 5 && leftDist < 5){ // nothing right
@@ -182,11 +189,16 @@ void loop()
         if (leftDist <= 2 && frontDist <= 4){
           scenario = 7;
         } else {
-          if (leftDist - rightDist <= -4){ // closer to left  wall than right wall by 3 units
+          if (leftDist <= 1){
             scenario = 5;
           } else {
             scenario = 2;
           }
+          //if (leftDist - rightDist >= -5){ // closer to left  wall than right wall by 3 units
+            //scenario = 5;
+          //} else {
+            //scenario = 2;
+          //}
         }
         
         // right();
@@ -227,16 +239,16 @@ void loop()
           forward();
 
           delay(500);
-
-          stop();
           
           setSpeed(30);
 
           right(false);
 
+          delay(700);
+
           forward();
 
-          delay(300);
+          delay(700);
 
           break;
 
@@ -248,16 +260,16 @@ void loop()
           forward();
 
           delay(500);
-
-          stop();
           
           setSpeed(30);
 
           left(false);
 
+          delay(700);
+
           forward();
 
-          delay(300);
+          delay(700);
 
           break;
 
