@@ -1,43 +1,27 @@
 #include <Servo.h>
 
-Servo wheelLeft;
-Servo wheelRight;
+Servo wheelLeft, wheelRight;
 
 int cw = 1500;
 int ccw = 1500;
-
-int left_reading = 0;
-int right_reading = 0;
-
 int offset = 5;
-bool turning = false;
-int leftOrRight = 1;
-int thresholdValue = 3;
-
 int scenario = 0;
-
-// 0 = Unknown scenario
-// 1 = Middle of a long corridor
-// 2 = Ideal position for right turn
-// 3 = Ideal position for left turn
-// 4 = Dead end
-// 5 = Close to left wall, parallel
-// 6 = Close to right wall, parallel
-// 7 = Close to left wall, approximately 30 degrees
-// 8 = Close to right wall, approximately 30 degrees
 
 const int ledRight = A0;
 const int ledMid = A1;
 const int ledLeft = A2;
 
+// These two distances still need physical calibration.
+const int forward5cmTime = 700;
+const int reverseLevelTime = 1000;
+
+// --------------------------------------------------
+// MOVEMENT — YOUR EXISTING CALIBRATIONS
+// --------------------------------------------------
+
 void setSpeed(int speed) {
-  if (speed == 0) {
-    cw = 1500;
-    ccw = 1500;
-  } else {
-    cw = 1500 - speed;
-    ccw = 1500 + speed;
-  }
+  cw = 1500 - speed;
+  ccw = 1500 + speed;
 }
 
 void stop() {
@@ -45,63 +29,43 @@ void stop() {
   wheelRight.write(1500);
 }
 
+void forward() {
+  wheelLeft.write(ccw - offset);
+  wheelRight.write(cw);
+}
+
 void reverse() {
   wheelLeft.write(cw + offset);
   wheelRight.write(ccw);
 }
 
-void left(bool isSlight) {
-  Serial.println("Moving left");
+void left(bool slight) {
   wheelLeft.write(cw - 40);
   wheelRight.write(cw);
 
-  turning = true;
-
-  if (isSlight) {
-    delay(600);
-  } else {
-    delay(250);
-  }
-
+  delay(slight ? 150 : 600);
   stop();
-  turning = false;
 }
 
-void right(bool isSlight) {
-  Serial.println("Moving right");
+void right(bool slight) {
   wheelLeft.write(ccw);
   wheelRight.write(ccw);
 
-  turning = true;
-
-  if (isSlight) {
-    delay(600);
-  } else {
-    delay(250);
-  }
-
+  delay(slight ? 250 : 600);
   stop();
-  turning = false;
 }
 
 void turn180() {
-  Serial.println("Turning 180");
   wheelLeft.write(cw - 40);
   wheelRight.write(cw);
 
-  turning = true;
-
   delay(1200);
-
   stop();
-  turning = false;
 }
 
-void forward() {
-  Serial.println("Moving forward");
-  wheelLeft.write(ccw - offset);
-  wheelRight.write(cw);
-}
+// --------------------------------------------------
+// LEDs — RIGHT, MIDDLE, LEFT
+// --------------------------------------------------
 
 void displayLEDs(int right, int mid, int left) {
   digitalWrite(ledRight, right);
@@ -109,65 +73,224 @@ void displayLEDs(int right, int mid, int left) {
   digitalWrite(ledLeft, left);
 }
 
-// Stop and display the detected scenario before moving.
-void showScenario(int detectedScenario) {
+// --------------------------------------------------
+// YOUR IR SENSOR FUNCTIONS
+// --------------------------------------------------
+
+int irDetect(int led, int receiver, long frequency) {
+  tone(led, frequency);
+  delay(1);
+
+  int reading = digitalRead(receiver);
+
+  noTone(led);
+  delay(1);
+
+  return reading;
+}
+
+int irDistance(int led, int receiver) {
+  int distance = 0;
+
+  for (long f = 38000; f <= 42000; f += 1000) {
+    distance += irDetect(led, receiver, f);
+  }
+
+  return distance;
+}
+
+// --------------------------------------------------
+// SCENARIO DETECTION
+// l = left, r = right, f = front
+//
+// Scores are NOT centimetres.
+// 5 = no wall detected.
+// 4 = provisional distant-wall reading.
+// Lower scores are treated as closer.
+// --------------------------------------------------
+
+int detectScenario(int l, int r, int f) {
+  if (f < 5) {
+    // 7: close left/front, distant right wall.
+    if (l <= 2 && r == 4 && r - l >= 3) {
+      return 7;
+    }
+
+    // 8: close right/front, distant left wall.
+    if (r <= 2 && l == 4 && l - r >= 3) {
+      return 8;
+    }
+
+    // 2: right open, left and front walls.
+    if (r == 5 && l < 5) {
+      return 2;
+    }
+
+    // 3: left open, right and front walls.
+    if (l == 5 && r < 5) {
+      return 3;
+    }
+
+    // 4: all three walls detected.
+    if (l < 5 && r < 5) {
+      return 4;
+    }
+  } else if (l < 5 && r < 5) {
+    // 5: closer to the left wall.
+    if (r - l >= 3) {
+      return 5;
+    }
+
+    // 6: closer to the right wall.
+    if (l - r >= 3) {
+      return 6;
+    }
+
+    // 1: similar side readings, front clear.
+    if (abs(l - r) <= 1) {
+      return 1;
+    }
+  }
+
+  // Unknown position: do not move.
+  return 0;
+}
+
+// --------------------------------------------------
+// SCENARIO MOVEMENTS
+// Every scenario finishes with stop().
+// --------------------------------------------------
+
+void runScenario(int number) {
   stop();
 
-  switch (detectedScenario) {
+  switch (number) {
     case 0:
       displayLEDs(LOW, LOW, LOW);
       break;
 
     case 1:
       displayLEDs(HIGH, LOW, LOW);
+
+      setSpeed(50);
+      forward();
+      delay(forward5cmTime);
       break;
 
     case 2:
       displayLEDs(LOW, HIGH, LOW);
+
+      // Rotate right, then enter the corridor.
+      setSpeed(30);
+      right(false);
+
+      forward();
+      delay(700);
       break;
 
     case 3:
       displayLEDs(HIGH, HIGH, LOW);
+
+      // Rotate left, then enter the corridor.
+      setSpeed(30);
+      left(false);
+
+      forward();
+      delay(700);
       break;
 
     case 4:
       displayLEDs(LOW, LOW, HIGH);
+
+      setSpeed(30);
+      turn180();
+
+      setSpeed(50);
+      forward();
+      delay(forward5cmTime);
       break;
 
     case 5:
       displayLEDs(HIGH, LOW, HIGH);
+
+      // Turn away from the left wall.
+      setSpeed(30);
+      right(true);
+
+      setSpeed(50);
+      forward();
+      delay(1000);
+      stop();
+
+      // Your original return-turn speed.
+      setSpeed(20);
+      left(true);
+
+      setSpeed(50);
+      reverse();
+      delay(reverseLevelTime);
       break;
 
     case 6:
       displayLEDs(LOW, HIGH, HIGH);
+
+      // Turn away from the right wall.
+      setSpeed(30);
+      left(true);
+
+      setSpeed(50);
+      forward();
+      delay(1000);
+      stop();
+
+      setSpeed(30);
+      right(true);
+
+      setSpeed(50);
+      reverse();
+      delay(reverseLevelTime);
       break;
 
     case 7:
       displayLEDs(HIGH, HIGH, HIGH);
+
+      setSpeed(30);
+      right(true);
       break;
 
     case 8:
-      // Flash the right LED for six seconds.
-      // The robot remains stopped throughout.
-      for (int i = 0; i < 3; i++) {
-        displayLEDs(HIGH, LOW, LOW);
-        delay(1000);
-        displayLEDs(LOW, LOW, LOW);
-        delay(1000);
-      }
-      return;
+      // Flash right LED while stopped.
+      displayLEDs(HIGH, LOW, LOW);
+      delay(1000);
+
+      displayLEDs(LOW, LOW, LOW);
+      delay(1000);
+
+      setSpeed(30);
+      left(true);
+      break;
 
     default:
       displayLEDs(LOW, LOW, LOW);
       break;
   }
 
-  delay(5000);
+  stop();
 }
 
+// --------------------------------------------------
+// SETUP
+// --------------------------------------------------
+
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(A3, INPUT);
+  pinMode(10, OUTPUT);
+  pinMode(11, INPUT);
+
+  pinMode(2, OUTPUT);
+  pinMode(3, INPUT);
+
+  pinMode(6, OUTPUT);
+  pinMode(7, INPUT);
 
   pinMode(ledRight, OUTPUT);
   pinMode(ledMid, OUTPUT);
@@ -180,154 +303,37 @@ void setup() {
 
   setSpeed(0);
   stop();
+  displayLEDs(LOW, LOW, LOW);
 
-  delay(1000);
+  // Time to position the robot.
+  delay(5000);
 }
+
+// --------------------------------------------------
+// MAIN LOOP
+// --------------------------------------------------
 
 void loop() {
-  float leftDist = 0;
-  float rightDist = 0;
-  float frontDist = 0;
+  int l = irDistance(10, 11);
+  int r = irDistance(2, 3);
+  int f = irDistance(6, 7);
 
-  leftDist = irDistance(10, 11);
-  rightDist = irDistance(2, 3);
-  frontDist = irDistance(6, 7);
+  scenario = detectScenario(l, r, f);
 
-  Serial.println("Left dist:  " + String(leftDist));
-  Serial.println("Front dist:  " + String(frontDist));
-  Serial.println("Right dist:  " + String(rightDist));
+  Serial.print("Left: ");
+  Serial.println(l);
 
-  scenario = 0;
+  Serial.print("Right: ");
+  Serial.println(r);
 
-  if (turning == false) {
-    if (leftDist >= 5 && rightDist >= 5 && frontDist >= 5) {
-      scenario = 0;
-    } else {
-      if (leftDist >= 5 && rightDist < 5) {
-        if (rightDist <= 2 && frontDist <= 4) {
-          scenario = 8;
-        } else {
-          if (rightDist - leftDist <= -4) {
-            scenario = 6;
-          } else {
-            scenario = 3;
-          }
-        }
-      } else if (rightDist >= 5 && leftDist < 5) {
-        if (leftDist <= 2 && frontDist <= 4) {
-          scenario = 7;
-        } else {
-          if (leftDist - rightDist <= -4) {
-            scenario = 5;
-          } else {
-            scenario = 2;
-          }
-        }
-      } else if ((rightDist <= 5) && (leftDist <= 5)) {
-        if (frontDist < 5) {
-          scenario = 4;
-        } else {
-          scenario = 1;
-        }
-      }
-    }
+  Serial.print("Front: ");
+  Serial.println(f);
 
-    // Outside the else: this now runs for scenario 0 too.
-    showScenario(scenario);
-
-    switch (scenario) {
-      case 0:
-        setSpeed(0);
-        stop();
-        break;
-
-      case 1:
-        setSpeed(50);
-        forward();
-        break;
-
-      case 2:
-        setSpeed(50);
-        forward();
-        delay(500);
-
-        stop();
-
-        setSpeed(30);
-        right(false);
-        forward();
-        delay(300);
-        break;
-
-      case 3:
-        setSpeed(50);
-        forward();
-        delay(500);
-
-        stop();
-
-        setSpeed(30);
-        left(false);
-        forward();
-        delay(300);
-        break;
-
-      case 4:
-        setSpeed(30);
-        turn180();
-        break;
-
-      case 5:
-        setSpeed(30);
-        right(true);
-        break;
-
-      case 6:
-        setSpeed(30);
-        left(true);
-        break;
-
-      case 7:
-        setSpeed(30);
-        right(true);
-        break;
-
-      case 8:
-        setSpeed(30);
-        left(true);
-        break;
-
-      default:
-        stop();
-        displayLEDs(LOW, LOW, LOW);
-        break;
-    }
-  }
-
+  Serial.print("Scenario: ");
   Serial.println(scenario);
+
+  runScenario(scenario);
+
+  // Robot stays stopped before checking again.
   delay(1000);
-}
-
-// IR Object Detection Function
-int irDetect(int irLedPin, int irReceiverPin, long frequency) {
-  tone(irLedPin, frequency);
-  delay(1);
-
-  int ir = digitalRead(irReceiverPin);
-
-  noTone(irLedPin);
-  delay(1);
-
-  return ir;
-}
-
-// IR distance measurement function
-int irDistance(int irLedPin, int irReceiverPin) {
-  int distance = 0;
-
-  for (long f = 38000; f <= 42000; f += 1000) {
-    distance += irDetect(irLedPin, irReceiverPin, f);
-  }
-
-  return distance;
 }
