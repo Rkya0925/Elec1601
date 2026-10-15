@@ -203,7 +203,7 @@ void loop()
           //}
         }
       }
-      else if (rightDist >= 5 && leftDist < 5){ // nothing right
+      else if (rightDist >= 5 && leftDist <= 5){ // nothing right
         //Serial.println("Distance right - left: " + String(rightDist - leftDist));
 
         if (leftDist <= 2 && frontDist <= 4){
