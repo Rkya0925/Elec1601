@@ -188,7 +188,7 @@ void setup()
       else if (rightDist >= 4 && leftDist <= 5){ // nothing right
         //Serial.println("Distance right - left: " + String(rightDist - leftDist));
 
-        if (leftDist <= 2 && frontDist <= 4){
+        if (leftDist <= 2 && frontDist <= 5){
           scenario = 7;
         } else {
           if (leftDist <= 1){ // close to left wall
@@ -252,6 +252,7 @@ void setup()
         setSpeed(30);
 
         right(false);
+        right(false);
 
         delay(700);
 
@@ -274,6 +275,7 @@ void setup()
         
         setSpeed(30);
 
+        left(false);
         left(false);
 
         delay(700);
