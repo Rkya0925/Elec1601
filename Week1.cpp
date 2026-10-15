@@ -140,27 +140,15 @@ void setup()
   Serial.begin(9600);
 
   setSpeed(0);
+
+  wheelLeft.write(1500);
+  wheelRight.write(1500);
  
   //setSpeed(50);
   //forward();
 
   //
-
-  float leftDist = 0;
-  float rightDist = 0;
-  float frontDist = 0;                               // 0.5 second delay - just long enough to see the LED blink
-
-  leftDist = irDistance(10, 11);
-  rightDist = irDistance(2, 3);
-  frontDist = irDistance(6, 7);
-
-  //
   
-  delay(1000);
-}
-
-void loop()
-{
   float leftDist = 0;
   float rightDist = 0;
   float frontDist = 0;                               // 0.5 second delay - just long enough to see the LED blink
@@ -223,6 +211,8 @@ void loop()
    
     //Serial.println("Finished");
   }
+  
+  Serial.println(scenario);
 
   if (turning == false){
     switch (scenario) {
@@ -243,6 +233,10 @@ void loop()
         setSpeed(50);
 
         forward();
+
+        delay(500);
+
+        stop();
 
         break;
 
@@ -265,6 +259,8 @@ void loop()
 
         delay(700);
 
+        stop();
+
         break;
 
       case 3:
@@ -286,6 +282,8 @@ void loop()
 
         delay(700);
 
+        stop();
+
         break;
 
       case 4:
@@ -294,6 +292,8 @@ void loop()
         setSpeed(30);
 
         turn180();
+
+        stop();
 
         break;
 
@@ -316,6 +316,8 @@ void loop()
 
         delay(50);
 
+        stop();
+
         break;
 
       case 6:
@@ -337,6 +339,8 @@ void loop()
 
         delay(50);
 
+        stop();
+
         break;
 
       case 7:
@@ -345,17 +349,23 @@ void loop()
         setSpeed(30);
 
         right(true);
+        right(true);
+
+        stop();
         break;
 
       case 8:
         setSpeed(30);
 
         left(true);
+        left(true);
 
         displayLEDs(HIGH, LOW, LOW);
         delay(100);
         displayLEDs(LOW, LOW, LOW);
         delay(100);
+
+        stop();
 
         break;
 
@@ -365,7 +375,11 @@ void loop()
     }
   }
 
-  Serial.println(scenario);
+  //
+}
+
+void loop()
+{
   delay(1000);
 }
 // IR Object Detection Function
