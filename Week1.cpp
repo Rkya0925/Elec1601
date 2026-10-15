@@ -183,7 +183,7 @@ void loop()
     if (leftDist >= 5 && rightDist >= 5 && frontDist >= 5){
       scenario = 0;
     } else {
-      if (leftDist >= 5 && rightDist < 5){ // nothing left
+      if (leftDist >= 5 && rightDist <= 5){ // nothing left
         
        // Serial.println("Distance left - right: " + String(leftDist - rightDist));
 
@@ -195,15 +195,9 @@ void loop()
           } else {
             scenario = 3;
           }
-
-          //if (rightDist - leftDist <= -5){ // closer to left wall than right wall by 3 units
-            //scenario = 6;
-          //} else {
-            //scenario = 3;
-          //}
         }
       }
-      else if (rightDist >= 5 && leftDist <= 5){ // nothing right
+      else if (rightDist >= 4 && leftDist <= 5){ // nothing right
         //Serial.println("Distance right - left: " + String(rightDist - leftDist));
 
         if (leftDist <= 2 && frontDist <= 4){
