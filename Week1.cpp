@@ -17,7 +17,6 @@ int right_reading = 0;
 
 int offset = 5;
 
-bool adjustingStartingPosition = false;
 bool turning = false;
 
 int leftOrRight = 1;
@@ -71,7 +70,7 @@ void left(bool isSlight){
   turning = true;
  
   if (isSlight){
-    delay(400);
+    delay(150);
   } else {
     delay(600);
   }
@@ -89,7 +88,7 @@ void right(bool isSlight){
   turning = true;
  
   if (isSlight){
-    delay(400);
+    delay(250);
   } else {
     delay(600);
   }
@@ -156,19 +155,6 @@ void setup()
   frontDist = irDistance(6, 7);
 
   //
-
-  if (rightDist <= 2){
-    scenario = 6;
-
-    adjustingStartingPosition = true;
-  }
-  if (leftDist <= 2){
-    scenario = 5;
-
-    adjustingStartingPosition = true;
-  }
-
-  //
   
   delay(1000);
 }
@@ -191,11 +177,9 @@ void loop()
   pinMode(ledMid, OUTPUT);
   pinMode(ledLeft, OUTPUT);
 
-  if (adjustingStartingPosition == false){
-    scenario = 0;
-  }
+  scenario = 0;
  
-  if (turning == false && adjustingStartingPosition == false){
+  if (turning == false){
     if (leftDist >= 5 && rightDist >= 5 && frontDist >= 5){
       scenario = 0;
     } else {
@@ -206,7 +190,11 @@ void loop()
         if (rightDist <= 2 && frontDist <= 4){
           scenario = 8;
         } else {
-          scenario = 3;
+          if (rightDist <= 1){ // close to right wall
+            scenario = 6;
+          } else {
+            scenario = 3;
+          }
 
           //if (rightDist - leftDist <= -5){ // closer to left wall than right wall by 3 units
             //scenario = 6;
@@ -221,13 +209,11 @@ void loop()
         if (leftDist <= 2 && frontDist <= 4){
           scenario = 7;
         } else {
-          scenario = 2;
-
-          //if (leftDist - rightDist >= -5){ // closer to left  wall than right wall by 3 units
-            //scenario = 5;
-          //} else {
-            //scenario = 2;
-          //}
+          if (leftDist <= 1){ // close to left wall
+            scenario = 5;
+          } else {
+            scenario = 2;
+          }
         }
         
         // right();
@@ -323,18 +309,20 @@ void loop()
         setSpeed(30);
 
         right(true);
+        
+        setSpeed(50);
 
         forward();
 
         delay(1000);
+        
+        setSpeed(20);
 
         left(true);
 
-        forward();
+        delay(50);
 
-        adjustingStartingPosition = false;
-
-      break;
+        break;
 
       case 6:
         displayLEDs(LOW, HIGH, HIGH);
@@ -342,6 +330,18 @@ void loop()
         setSpeed(30);
 
         left(true);
+        
+        setSpeed(50);
+
+        forward();
+
+        delay(1000);
+        
+        setSpeed(30);
+
+        right(true);
+
+        delay(50);
 
         break;
 
