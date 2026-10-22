@@ -151,7 +151,7 @@ void displayScenario(int scenario) {
         digitalWrite(redLedMid, (scenario & 2) ? HIGH : LOW);
         digitalWrite(redLedRight, (scenario & 1) ? HIGH : LOW);
 
-        delay(5000);
+        delay(1000);
     }
 }
 
@@ -333,7 +333,7 @@ void loop() {
     halt();
     clearLeds();
 
-    delay(3000);
+    delay(500);
 
     // Detect the scenario
     int scenario = detectScenario();
@@ -341,6 +341,8 @@ void loop() {
     // Display scenario on LEDs for 5 seconds
     // (mandatory hold for assessment)
     displayScenario(scenario);
+
+    Serial.println(scenario);
 
     // Execute recovery escape maneuver
     executeScenarioEscape(scenario);
