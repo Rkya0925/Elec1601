@@ -184,7 +184,7 @@ int detectScenario() {
     if (dMid <= 10.0) {
 
         // Scenario 4: Dead End (All 3 sides enclosed)
-        if (dLeft <= 9.0 && dRight <= 9.0) {
+        if (dLeft <= 9.0 && dRight <= 9.0 && dMid >= 5) {
             return 4;
         }
 
@@ -199,7 +199,7 @@ int detectScenario() {
         }
 
         // Scenario 7: Angled ~30 deg towards left wall
-        if (dLeft <= 5.0 && dRight > 9.0) {
+        if (dLeft <= 5.0 && dRight > 9.0 && dMid < 5) {
             return 7;
         }
 
