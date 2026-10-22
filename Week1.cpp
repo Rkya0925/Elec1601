@@ -36,7 +36,7 @@ void driveForward5cm() {
 
 void driveBackward5cm() {
     setMotors(1407, 1571);
-    delay(440);
+    delay(220);
     halt();
 }
 
@@ -74,6 +74,20 @@ void spin180() {
     // 180 degree dead-end turn
     setMotors(1571, 1592);
     delay(1150);
+    halt();
+}
+
+void turnSuperSlightCW() {
+    // ~25 degree clockwise square-up
+    setMotors(1571, 1592);
+    delay(120);
+    halt();
+}
+
+void turnSuperSlightCCW() {
+    // ~25 degree counter-clockwise square-up
+    setMotors(1418, 1407);
+    delay(120);
     halt();
 }
 
@@ -289,7 +303,7 @@ void executeScenarioEscape(int scenario) {
             // Clockwise square up + advance
             turnSlightCW();
             driveForward5cm();
-            turnSlightCCW();
+            turnSuperSlightCCW();
             driveBackward5cm();
             break;
 
@@ -298,7 +312,7 @@ void executeScenarioEscape(int scenario) {
             // Anti-clockwise square up + advance
             turnSlightCCW();
             driveForward5cm();
-            turnSlightCW();
+            turnSuperSlightCW();
             driveBackward5cm();
             
             break;
