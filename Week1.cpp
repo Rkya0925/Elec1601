@@ -34,6 +34,12 @@ void driveForward5cm() {
     halt();
 }
 
+void driveBackward5cm() {
+    setMotors(1407, 1571);
+    delay(440);
+    halt();
+}
+
 void driveForward(int ms) {
     setMotors(1571, 1407);
     delay(ms);
@@ -283,6 +289,8 @@ void executeScenarioEscape(int scenario) {
             // Clockwise square up + advance
             turnSlightCW();
             driveForward5cm();
+            turnSlightCCW();
+            driveBackward5cm();
             break;
 
         case 8:
@@ -290,6 +298,9 @@ void executeScenarioEscape(int scenario) {
             // Anti-clockwise square up + advance
             turnSlightCCW();
             driveForward5cm();
+            turnSlightCW();
+            driveBackward5cm();
+            
             break;
 
         case 9:
