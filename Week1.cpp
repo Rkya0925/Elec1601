@@ -303,8 +303,7 @@ void executeScenarioEscape(int scenario) {
             // Clockwise square up + advance
             turnSlightCW();
             driveForward5cm();
-            turnSuperSlightCCW();
-            driveBackward5cm();
+            
             break;
 
         case 8:
@@ -312,9 +311,6 @@ void executeScenarioEscape(int scenario) {
             // Anti-clockwise square up + advance
             turnSlightCCW();
             driveForward5cm();
-            turnSuperSlightCW();
-            driveBackward5cm();
-            
             break;
 
         case 9:
